@@ -3,31 +3,44 @@ name: Build Skin-Check Ecosystem
 on:
   push:
     branches: ["main"]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  build-ecosystem:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - name: Code auschecken
+        uses: actions/checkout@v3
+
+      - name: Python einrichten
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      
+
+      # SCHRITT 1: Datenbank (Das Wissen)
       - name: 1. Datenbank generieren 🧪
         run: python generate_inci.py
-        
+      
+      # SCHRITT 2: Lexikon (Die SEO Seiten)
       - name: 2. Lexikon generieren 📚
         run: python build_skin_lexikon.py
 
+      # SCHRITT 3: App (Der Scanner)
       - name: 3. App bauen 💅
         run: python build_skin_app.py
         
-      - name: Speichern
+      # SCHRITT 4: Speichern
+      - name: Alles speichern & veröffentlichen 🚀
         run: |
           git config --global user.name "Skin-Bot 🤖"
           git config --global user.email "bot@skincheck.app"
+          
+          # Wir fügen alles hinzu (auch den neuen 'lexikon' Ordner)
           git add .
-          git diff-index --quiet HEAD || (git commit -m "🚀 Ecosystem Update" && git push)
+          
+          # Commit & Push nur bei Änderungen
+          git diff-index --quiet HEAD || (git commit -m "🚀 Ecosystem Update: App + Lexikon Live" && git push)
