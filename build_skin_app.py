@@ -1,0 +1,246 @@
+import os
+
+# --- KONFIGURATION ---
+OUTPUT_HTML = "index.html"
+OUTPUT_MANIFEST = "manifest.json"
+APP_NAME = "Skin-Check"
+# Lila/Blau Verlauf für Kosmetik-Look
+THEME_COLOR = "#4c1d95" 
+BG_gradient = "linear-gradient(135deg, #4c1d95 0%, #1e1b4b 100%)"
+
+# --- 1. MANIFEST (Neues Icon!) ---
+manifest_content = f"""
+{{
+    "name": "{APP_NAME}",
+    "short_name": "{APP_NAME}",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "{THEME_COLOR}",
+    "theme_color": "{THEME_COLOR}",
+    "icons": [
+        {{
+            "src": "https://img.icons8.com/fluency/192/cosmetic-brush.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }},
+        {{
+            "src": "https://img.icons8.com/fluency/512/cosmetic-brush.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }}
+    ]
+}}
+"""
+
+# --- 2. HTML/JS CODE ---
+html_content = f"""
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>{APP_NAME}</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="{THEME_COLOR}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/192/cosmetic-brush.png">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        :root {{ 
+            --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --muted: #94a3b8;
+            --primary: #8b5cf6; /* Lila */
+            --accent: #ec4899; /* Pink */
+            --safe: #34d399; --danger: #f87171;
+        }}
+        body {{ font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }}
+        
+        /* Neuer Header Style */
+        header {{ 
+            padding: 1rem; text-align: center; 
+            background: {BG_gradient}; 
+            box-shadow: 0 4px 20px rgba(76, 29, 149, 0.4);
+            z-index: 20; padding-top: max(1rem, env(safe-area-inset-top));
+        }}
+        header h1 {{ margin: 0; font-size: 1.2rem; letter-spacing: 1px; font-weight: 800; }}
+
+        /* Scanner */
+        #scanner-wrapper {{ flex: 1; position: relative; background: #000; }}
+        #reader {{ width: 100%; height: 100%; object-fit: cover; }}
+        .scan-frame {{ 
+            width: 70%; aspect-ratio: 1; border: 2px solid rgba(255,255,255,0.2); border-radius: 20px;
+            box-shadow: 0 0 0 4000px rgba(0,0,0,0.7); position: relative;
+        }}
+        .scan-frame::after {{
+            content: ''; position: absolute; inset: -3px; border: 3px solid var(--accent); border-radius: 20px;
+            animation: pulse 2s infinite; clip-path: polygon(0% 0%, 100% 0%, 100% 20%, 0% 20%);
+        }}
+        @keyframes pulse {{ 0% {{ top:0; opacity:0; }} 50% {{ opacity:1; }} 100% {{ top:100%; opacity:0; }} }}
+        
+        /* Result Sheet */
+        #result-sheet {{ 
+            position: absolute; bottom: 0; left: 0; right: 0; 
+            background: var(--card); border-radius: 25px 25px 0 0; 
+            padding: 1.5rem; transform: translateY(110%); transition: 0.3s cubic-bezier(0.19, 1, 0.22, 1); 
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.6); z-index: 50; max-height: 85vh; overflow-y: auto;
+        }}
+        #result-sheet.open {{ transform: translateY(0); }}
+        
+        /* UI Elements */
+        .prod-img {{ width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); margin-right: 15px; background: white; }}
+        .badge {{ padding: 4px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-right: 5px; }}
+        .b-safe {{ background: rgba(52, 211, 153, 0.1); color: var(--safe); }}
+        .b-danger {{ background: rgba(248, 113, 113, 0.1); color: var(--danger); }}
+        
+        .inci-item {{ 
+            background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; margin-bottom: 8px; 
+            display: flex; justify-content: space-between; align-items: center; border-left: 3px solid transparent;
+        }}
+        .inci-danger {{ border-left-color: var(--danger); background: rgba(248, 113, 113, 0.05); }}
+        .inci-safe {{ border-left-color: var(--safe); }}
+        
+        .btn {{ width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: bold; margin-top: 1rem; background: rgba(255,255,255,0.1); color: white; }}
+    </style>
+</head>
+<body>
+
+<header><h1>Skin-Check 💄</h1></header>
+
+<div id="scanner-wrapper">
+    <div id="reader"></div>
+    <div style="position:absolute; inset:0; display:flex; justify-content:center; align-items:center; pointer-events:none;">
+        <div class="scan-frame"></div>
+    </div>
+</div>
+
+<div id="result-sheet">
+    <div style="width:40px; height:4px; background:#ffffff33; margin:0 auto 20px auto; border-radius:2px;"></div>
+    <div id="content"></div>
+    <button class="btn" onclick="startScan()">Nächstes Produkt</button>
+</div>
+
+<script>
+    let db = {{}};
+    let scanner = null;
+    let isScanning = true;
+
+    // Load DB
+    fetch('app_database.json').then(r => r.json()).then(d => db = d);
+
+    function startScan() {{
+        document.getElementById('result-sheet').classList.remove('open');
+        if(scanner) return;
+        scanner = new Html5QrcodeScanner("reader", {{ fps: 10, qrbox: 250, facingMode: "environment" }});
+        scanner.render(onScan, e => {{}});
+        isScanning = true;
+    }}
+
+    function onScan(code) {{
+        if(!isScanning) return;
+        isScanning = false;
+        try {{ scanner.clear(); scanner = null; }} catch(e){{}}
+        
+        // Vibration Feedback
+        if(navigator.vibrate) navigator.vibrate(50);
+        analyze(code);
+    }}
+
+    async function analyze(code) {{
+        const ui = document.getElementById('content');
+        const sheet = document.getElementById('result-sheet');
+        ui.innerHTML = '<p style="text-align:center">Analysiere Inhaltsstoffe...</p>';
+        sheet.classList.add('open');
+
+        try {{
+            // WICHTIG: OpenBeautyFacts API!
+            const res = await fetch(`https://world.openbeautyfacts.org/api/v0/product/${{code}}.json`);
+            const data = await res.json();
+
+            if(data.status === 0) {{
+                ui.innerHTML = `<h3>Nicht gefunden 🤷‍♀️</h3><p>Code ${{code}} ist unbekannt.</p>`;
+                return;
+            }}
+
+            const p = data.product;
+            // API gibt Inhaltsstoffe oft als "en:aqua" zurück
+            const ingredients = p.ingredients_original_tags || p.ingredients_tags || [];
+            
+            // Checks
+            const hasMicroplastics = ingredients.some(t => t.includes('acrylates') || t.includes('carbomer') || t.includes('nylon'));
+            const hasPalmOil = (p.ingredients_from_palm_oil_n > 0);
+
+            let listHtml = '';
+            let riskCount = 0;
+
+            if(ingredients.length > 0) {{
+                ingredients.forEach(tag => {{
+                    // "en:dimethicone" -> "DIMETHICONE"
+                    let inci = tag.split(':')[1] || tag;
+                    inci = inci.toUpperCase().replace(/-/g, ' ');
+                    
+                    // Suche in unserer DB
+                    // (Wir suchen auch nach Teilstrings für bessere Trefferquote im MVP)
+                    let info = db[inci]; 
+                    if(!info) {{
+                        // Fallback Suche
+                        info = Object.values(db).find(v => v.n.toUpperCase() === inci);
+                    }}
+
+                    if(info) {{
+                        let style = "inci-safe";
+                        if(info.r.includes("Bedenklich") || info.r.includes("Gefährlich") || info.r.includes("Vorsicht")) {{
+                            style = "inci-danger";
+                            riskCount++;
+                        }}
+                        
+                        listHtml += `
+                        <div class="inci-item ${{style}}">
+                            <div>
+                                <div style="font-weight:bold; font-size:0.9rem;">${{info.n}}</div>
+                                <div style="font-size:0.75rem; opacity:0.7;">${{info.d}}</div>
+                            </div>
+                            <div style="font-size:1.2rem;">${{style.includes('danger') ? '⚠️' : '✅'}}</div>
+                        </div>`;
+                    }}
+                }});
+            }} else {{
+                listHtml = '<div style="padding:1rem; text-align:center; opacity:0.5;">Keine INCI-Liste verfügbar.</div>';
+            }}
+
+            // Header bauen
+            ui.innerHTML = `
+                <div style="display:flex; align-items:center; margin-bottom:20px;">
+                    <img src="${{p.image_front_small_url || 'https://via.placeholder.com/80'}}" class="prod-img">
+                    <div>
+                        <div style="font-size:0.8rem; text-transform:uppercase; color:var(--primary);">${{p.brands || 'Marke'}}</div>
+                        <h2 style="margin:0; font-size:1.3rem;">${{p.product_name || 'Produkt'}}</h2>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    ${{hasMicroplastics ? '<span class="badge b-danger">⚠️ Mikroplastik</span>' : '<span class="badge b-safe">💧 Plastikfrei*</span>'}}
+                    ${{hasPalmOil ? '<span class="badge b-danger">🌴 Palmöl</span>' : ''}}
+                    ${{riskCount === 0 ? '<span class="badge b-safe">✨ Clean</span>' : ''}}
+                </div>
+                
+                <h3 style="font-size:1rem; opacity:0.7; margin-bottom:10px;">Gefundene Inhaltsstoffe</h3>
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                    ${{listHtml}}
+                </div>
+                <p style="font-size:0.7rem; color:#aaa; margin-top:10px; text-align:center;">*Basierend auf verfügbaren Daten.</p>
+            `;
+
+        }} catch(e) {{
+            ui.innerHTML = "Fehler: " + e;
+        }}
+    }}
+
+    startScan();
+</script>
+</body>
+</html>
+"""
+
+print("💄 Erstelle App...")
+with open(OUTPUT_MANIFEST, "w", encoding="utf-8") as f: f.write(manifest_content)
+with open(OUTPUT_HTML, "w", encoding="utf-8") as f: f.write(html_content)
+print("✅ Skin-Check Ready!")
