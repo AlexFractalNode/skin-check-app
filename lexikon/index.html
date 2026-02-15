@@ -4,7 +4,8 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>INCI Lexikon - Kosmetik Inhaltsstoffe checken</title>
+        <title>INCI Lexikon - Kosmetik Inhaltsstoffe von A-Z</title>
+        <meta name="description" content="Große Datenbank für Kosmetik-Inhaltsstoffe. Prüfe Mikroplastik, Parabene und Silikone.">
         
 <style>
     :root { --bg: #f8fafc; --text: #0f172a; --primary: #7c3aed; --accent: #db2777; --card: #ffffff; }
@@ -12,47 +13,487 @@
     
     /* Nav */
     nav { background: white; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
-    .logo { font-weight: 800; color: var(--primary); text-decoration: none; font-size: 1.2rem; }
-    .btn-app { background: var(--primary); color: white; padding: 8px 16px; border-radius: 99px; text-decoration: none; font-weight: bold; font-size: 0.9rem; }
+    .logo { font-weight: 800; color: var(--primary); text-decoration: none; font-size: 1.1rem; }
+    .btn-app { background: var(--primary); color: white; padding: 8px 16px; border-radius: 99px; text-decoration: none; font-weight: bold; font-size: 0.9rem; transition: transform 0.2s; }
+    .btn-app:hover { transform: scale(1.05); }
     
     /* Layout */
     .container { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
-    .card { background: var(--card); border-radius: 16px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 2rem; }
+    .card { background: var(--card); border-radius: 16px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 2rem; border: 1px solid #e2e8f0; }
     
-    h1 { margin-top: 0; font-size: 2rem; color: var(--primary); }
+    h1 { margin-top: 0; font-size: 2rem; color: var(--primary); line-height: 1.2; }
+    h2 { font-size: 1.3rem; margin-top: 2rem; }
+    
     .badge { display: inline-block; padding: 6px 12px; border-radius: 8px; font-weight: bold; margin-bottom: 1rem; }
     .b-red { background: #fee2e2; color: #991b1b; }
     .b-green { background: #dcfce7; color: #166534; }
+    .b-orange { background: #ffedd5; color: #9a3412; }
     
-    /* Affiliate Box */
-    .promo-box { background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%); color: white; padding: 2rem; border-radius: 16px; text-align: center; margin-top: 3rem; }
-    .promo-btn { display: inline-block; background: white; color: var(--primary); padding: 12px 24px; border-radius: 99px; font-weight: bold; text-decoration: none; margin-top: 1rem; transition: transform 0.2s; }
-    .promo-btn:hover { transform: scale(1.05); }
+    /* Promo Box (Der Trichter zur App) */
+    .promo-box { background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%); color: white; padding: 2.5rem; border-radius: 16px; text-align: center; margin-top: 3rem; box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.4); }
+    .promo-btn { display: inline-block; background: white; color: var(--primary); padding: 14px 28px; border-radius: 99px; font-weight: 800; text-decoration: none; margin-top: 1.5rem; transition: transform 0.2s; font-size: 1.1rem; }
+    .promo-btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
     /* List */
-    .index-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
-    .index-item { display: block; background: white; padding: 1rem; border-radius: 8px; text-decoration: none; color: inherit; border: 1px solid #e2e8f0; }
-    .index-item:hover { border-color: var(--primary); }
+    .index-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .index-item { display: block; background: white; padding: 1.5rem; border-radius: 12px; text-decoration: none; color: inherit; border: 1px solid #e2e8f0; transition: border-color 0.2s; }
+    .index-item:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    
+    footer { text-align: center; color: #94a3b8; margin-top: 3rem; font-size: 0.9rem; }
 </style>
 
     </head>
     <body>
         <nav>
-            <a href="#" class="logo">🧬 Skin-Check Lexikon</a>
-            <a href="../index.html" class="btn-app">📷 Zur App</a>
+            <a href="#" class="logo">🧬 INCI Lexikon</a>
+            <a href="../index.html" class="btn-app">📷 App laden</a>
         </nav>
+        
         <div class="container">
-            <div style="text-align:center; margin-bottom:3rem;">
-                <h1>Was schmierst du dir auf die Haut?</h1>
-                <p>Die große Datenbank für Inhaltsstoffe (INCI). <br>Von Mikroplastik bis Parabene.</p>
-                <a href="../index.html" class="btn-app" style="font-size:1.2rem; padding:12px 24px;">📷 Barcode scannen</a>
+            <div style="text-align:center; margin: 2rem 0 4rem 0;">
+                <h1 style="font-size:2.5rem; margin-bottom:1rem;">Was schmierst du dir<br>auf die Haut?</h1>
+                <p style="font-size:1.2rem; color:#475569; max-width:600px; margin:0 auto;">
+                    Die große Datenbank für Inhaltsstoffe. Von Mikroplastik bis Parabene.
+                    Wir übersetzen das Kleingedruckte.
+                </p>
+                <div style="margin-top:2rem;">
+                    <a href="../index.html" class="btn-app" style="font-size:1.1rem; padding:16px 32px; box-shadow:0 10px 20px -5px rgba(124, 58, 237, 0.3);">📷 Barcode jetzt scannen</a>
+                </div>
             </div>
             
-            <h2>Alle Inhaltsstoffe A-Z</h2>
+            <h2 style="border-bottom:2px solid #e2e8f0; padding-bottom:10px; margin-bottom:1.5rem;">Alle Inhaltsstoffe A-Z</h2>
             <div class="index-list">
-                <a href="propylparaben.html" class="index-item"><strong>⚠️ Propylparaben</strong><br><small style="color:#64748b">PROPYLPARABEN</small></a><a href="butylparaben.html" class="index-item"><strong>⚠️ Butylparaben</strong><br><small style="color:#64748b">BUTYLPARABEN</small></a><a href="methylparaben.html" class="index-item"><strong>⚠️ Methylparaben</strong><br><small style="color:#64748b">METHYLPARABEN</small></a><a href="triclosan.html" class="index-item"><strong>⚠️ Triclosan</strong><br><small style="color:#64748b">TRICLOSAN</small></a><a href="methylisothiazolinone-mi.html" class="index-item"><strong>⚠️ Methylisothiazolinone (MI)</strong><br><small style="color:#64748b">METHYLISOTHIAZOLINONE</small></a><a href="dmdm-hydantoin.html" class="index-item"><strong>⚠️ DMDM Hydantoin</strong><br><small style="color:#64748b">DMDM HYDANTOIN</small></a><a href="imidazolidinyl-urea.html" class="index-item"><strong>⚠️ Imidazolidinyl Urea</strong><br><small style="color:#64748b">IMIDAZOLIDINYL UREA</small></a><a href="bht-butylhydroxytoluol.html" class="index-item"><strong>⚠️ BHT (Butylhydroxytoluol)</strong><br><small style="color:#64748b">BHT</small></a><a href="dimethicone.html" class="index-item"><strong>✅ Dimethicone</strong><br><small style="color:#64748b">DIMETHICONE</small></a><a href="cyclopentasiloxane.html" class="index-item"><strong>⚠️ Cyclopentasiloxane</strong><br><small style="color:#64748b">CYCLOPENTASILOXANE</small></a><a href="paraffin-l.html" class="index-item"><strong>⚠️ Paraffinöl</strong><br><small style="color:#64748b">PARAFFINUM LIQUIDUM</small></a><a href="vaseline.html" class="index-item"><strong>✅ Vaseline</strong><br><small style="color:#64748b">PETROLATUM</small></a><a href="mikrowachs.html" class="index-item"><strong>⚠️ Mikrowachs</strong><br><small style="color:#64748b">CERA MICROCRISTALLINA</small></a><a href="mineral-l.html" class="index-item"><strong>⚠️ Mineralöl</strong><br><small style="color:#64748b">MINERAL OIL</small></a><a href="sls.html" class="index-item"><strong>⚠️ SLS</strong><br><small style="color:#64748b">SODIUM LAURYL SULFATE</small></a><a href="sles.html" class="index-item"><strong>✅ SLES</strong><br><small style="color:#64748b">SODIUM LAURETH SULFATE</small></a><a href="als.html" class="index-item"><strong>✅ ALS</strong><br><small style="color:#64748b">AMMONIUM LAURYL SULFATE</small></a><a href="acrylates-copolymer.html" class="index-item"><strong>⚠️ Acrylates Copolymer</strong><br><small style="color:#64748b">ACRYLATES COPOLYMER</small></a><a href="carbomer.html" class="index-item"><strong>✅ Carbomer</strong><br><small style="color:#64748b">CARBOMER</small></a><a href="nylon-12.html" class="index-item"><strong>⚠️ Nylon-12</strong><br><small style="color:#64748b">NYLON-12</small></a><a href="polyethylene-pe.html" class="index-item"><strong>⚠️ Polyethylene (PE)</strong><br><small style="color:#64748b">POLYETHYLENE</small></a><a href="benzophenone-3.html" class="index-item"><strong>⚠️ Benzophenone-3</strong><br><small style="color:#64748b">BENZOPHENONE-3</small></a><a href="octocrylene.html" class="index-item"><strong>✅ Octocrylene</strong><br><small style="color:#64748b">OCTOCRYLENE</small></a><a href="homosalate.html" class="index-item"><strong>✅ Homosalate</strong><br><small style="color:#64748b">HOMOSALATE</small></a><a href="disodium-edta.html" class="index-item"><strong>✅ Disodium EDTA</strong><br><small style="color:#64748b">DISODIUM EDTA</small></a><a href="aluminiumsalze.html" class="index-item"><strong>⚠️ Aluminiumsalze</strong><br><small style="color:#64748b">ALUMINUM CHLOROHYDRATE</small></a><a href="limonene.html" class="index-item"><strong>✅ Limonene</strong><br><small style="color:#64748b">LIMONENE</small></a><a href="linalool.html" class="index-item"><strong>✅ Linalool</strong><br><small style="color:#64748b">LINALOOL</small></a><a href="citronellol.html" class="index-item"><strong>✅ Citronellol</strong><br><small style="color:#64748b">CITRONELLOL</small></a><a href="parfum-fragrance.html" class="index-item"><strong>✅ Parfum / Fragrance</strong><br><small style="color:#64748b">PARFUM</small></a><a href="wasser.html" class="index-item"><strong>✅ Wasser</strong><br><small style="color:#64748b">AQUA</small></a><a href="glycerin.html" class="index-item"><strong>✅ Glycerin</strong><br><small style="color:#64748b">GLYCERIN</small></a><a href="panthenol-provitamin-b5.html" class="index-item"><strong>✅ Panthenol (Provitamin B5)</strong><br><small style="color:#64748b">PANTHENOL</small></a><a href="niacinamid-vitamin-b3.html" class="index-item"><strong>✅ Niacinamid (Vitamin B3)</strong><br><small style="color:#64748b">NIACINAMIDE</small></a><a href="hyalurons-ure.html" class="index-item"><strong>✅ Hyaluronsäure</strong><br><small style="color:#64748b">SODIUM HYALURONATE</small></a><a href="vitamin-e.html" class="index-item"><strong>✅ Vitamin E</strong><br><small style="color:#64748b">TOCOPHEROL</small></a><a href="allantoin.html" class="index-item"><strong>✅ Allantoin</strong><br><small style="color:#64748b">ALLANTOIN</small></a><a href="retinol-vitamin-a.html" class="index-item"><strong>✅ Retinol (Vitamin A)</strong><br><small style="color:#64748b">RETINOL</small></a><a href="ceramide.html" class="index-item"><strong>✅ Ceramide</strong><br><small style="color:#64748b">CERAMIDE NP</small></a><a href="urea-harnstoff.html" class="index-item"><strong>✅ Urea (Harnstoff)</strong><br><small style="color:#64748b">UREA</small></a><a href="zinkoxid.html" class="index-item"><strong>✅ Zinkoxid</strong><br><small style="color:#64748b">ZINC OXIDE</small></a><a href="sheabutter.html" class="index-item"><strong>✅ Sheabutter</strong><br><small style="color:#64748b">BUTYROSPERMUM PARKII BUTTER</small></a><a href="jojoba-l.html" class="index-item"><strong>✅ Jojobaöl</strong><br><small style="color:#64748b">SIMMONDSIA CHINENSIS SEED OIL</small></a><a href="mandel-l.html" class="index-item"><strong>✅ Mandelöl</strong><br><small style="color:#64748b">PRUNUS AMYGDALUS DULCIS OIL</small></a><a href="aloe-vera.html" class="index-item"><strong>✅ Aloe Vera</strong><br><small style="color:#64748b">ALOE BARBADENSIS LEAF JUICE</small></a><a href="argan-l.html" class="index-item"><strong>✅ Arganöl</strong><br><small style="color:#64748b">ARGANIA SPINOSA KERNEL OIL</small></a><a href="kokos-l.html" class="index-item"><strong>✅ Kokosöl</strong><br><small style="color:#64748b">COCOS NUCIFERA OIL</small></a><a href="squalan.html" class="index-item"><strong>✅ Squalan</strong><br><small style="color:#64748b">SQUALANE</small></a><a href="neutral-l.html" class="index-item"><strong>✅ Neutralöl</strong><br><small style="color:#64748b">CAPRYLIC/CAPRIC TRIGLYCERIDE</small></a><a href="cetearylalkohol.html" class="index-item"><strong>✅ Cetearylalkohol</strong><br><small style="color:#64748b">CETEARYL ALCOHOL</small></a><a href="cetylalkohol.html" class="index-item"><strong>✅ Cetylalkohol</strong><br><small style="color:#64748b">CETYL ALCOHOL</small></a><a href="stearins-ure.html" class="index-item"><strong>✅ Stearinsäure</strong><br><small style="color:#64748b">STEARIC ACID</small></a><a href="xanthan.html" class="index-item"><strong>✅ Xanthan</strong><br><small style="color:#64748b">XANTHAN GUM</small></a>
+                
+        <a href="als.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>ALS</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">AMMONIUM LAURYL SULFATE</small>
+        </a>
+        
+        <a href="acrylates-copolymer.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Acrylates Copolymer</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">ACRYLATES COPOLYMER</small>
+        </a>
+        
+        <a href="allantoin.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Allantoin</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">ALLANTOIN</small>
+        </a>
+        
+        <a href="aloe-vera.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Aloe Vera</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">ALOE BARBADENSIS LEAF JUICE</small>
+        </a>
+        
+        <a href="aluminiumsalze.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Aluminiumsalze</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">ALUMINUM CHLOROHYDRATE</small>
+        </a>
+        
+        <a href="argan-l.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Arganöl</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">ARGANIA SPINOSA KERNEL OIL</small>
+        </a>
+        
+        <a href="bht-butylhydroxytoluol.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>BHT (Butylhydroxytoluol)</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">BHT</small>
+        </a>
+        
+        <a href="benzophenone-3.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Benzophenone-3</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">BENZOPHENONE-3</small>
+        </a>
+        
+        <a href="butylparaben.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Butylparaben</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">BUTYLPARABEN</small>
+        </a>
+        
+        <a href="carbomer.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Carbomer</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">CARBOMER</small>
+        </a>
+        
+        <a href="ceramide.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Ceramide</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">CERAMIDE NP</small>
+        </a>
+        
+        <a href="cetearylalkohol.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Cetearylalkohol</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">CETEARYL ALCOHOL</small>
+        </a>
+        
+        <a href="cetylalkohol.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Cetylalkohol</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">CETYL ALCOHOL</small>
+        </a>
+        
+        <a href="citronellol.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Citronellol</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">CITRONELLOL</small>
+        </a>
+        
+        <a href="cyclopentasiloxane.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Cyclopentasiloxane</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">CYCLOPENTASILOXANE</small>
+        </a>
+        
+        <a href="dmdm-hydantoin.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>DMDM Hydantoin</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">DMDM HYDANTOIN</small>
+        </a>
+        
+        <a href="dimethicone.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Dimethicone</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">DIMETHICONE</small>
+        </a>
+        
+        <a href="disodium-edta.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Disodium EDTA</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">DISODIUM EDTA</small>
+        </a>
+        
+        <a href="glycerin.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Glycerin</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">GLYCERIN</small>
+        </a>
+        
+        <a href="homosalate.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Homosalate</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">HOMOSALATE</small>
+        </a>
+        
+        <a href="hyalurons-ure.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Hyaluronsäure</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">SODIUM HYALURONATE</small>
+        </a>
+        
+        <a href="imidazolidinyl-urea.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Imidazolidinyl Urea</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">IMIDAZOLIDINYL UREA</small>
+        </a>
+        
+        <a href="jojoba-l.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Jojobaöl</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">SIMMONDSIA CHINENSIS SEED OIL</small>
+        </a>
+        
+        <a href="kokos-l.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Kokosöl</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">COCOS NUCIFERA OIL</small>
+        </a>
+        
+        <a href="limonene.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Limonene</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">LIMONENE</small>
+        </a>
+        
+        <a href="linalool.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Linalool</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">LINALOOL</small>
+        </a>
+        
+        <a href="mandel-l.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Mandelöl</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">PRUNUS AMYGDALUS DULCIS OIL</small>
+        </a>
+        
+        <a href="methylisothiazolinone-mi.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Methylisothiazolinone (MI)</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">METHYLISOTHIAZOLINONE</small>
+        </a>
+        
+        <a href="methylparaben.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Methylparaben</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">METHYLPARABEN</small>
+        </a>
+        
+        <a href="mikrowachs.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Mikrowachs</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">CERA MICROCRISTALLINA</small>
+        </a>
+        
+        <a href="mineral-l.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Mineralöl</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">MINERAL OIL</small>
+        </a>
+        
+        <a href="neutral-l.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Neutralöl</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">CAPRYLIC/CAPRIC TRIGLYCERIDE</small>
+        </a>
+        
+        <a href="niacinamid-vitamin-b3.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Niacinamid (Vitamin B3)</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">NIACINAMIDE</small>
+        </a>
+        
+        <a href="nylon-12.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Nylon-12</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">NYLON-12</small>
+        </a>
+        
+        <a href="octocrylene.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Octocrylene</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">OCTOCRYLENE</small>
+        </a>
+        
+        <a href="panthenol-provitamin-b5.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Panthenol (Provitamin B5)</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">PANTHENOL</small>
+        </a>
+        
+        <a href="paraffin-l.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Paraffinöl</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">PARAFFINUM LIQUIDUM</small>
+        </a>
+        
+        <a href="parfum-fragrance.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Parfum / Fragrance</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">PARFUM</small>
+        </a>
+        
+        <a href="polyethylene-pe.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Polyethylene (PE)</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">POLYETHYLENE</small>
+        </a>
+        
+        <a href="propylparaben.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Propylparaben</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">PROPYLPARABEN</small>
+        </a>
+        
+        <a href="retinol-vitamin-a.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Retinol (Vitamin A)</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">RETINOL</small>
+        </a>
+        
+        <a href="sles.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>SLES</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">SODIUM LAURETH SULFATE</small>
+        </a>
+        
+        <a href="sls.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>SLS</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">SODIUM LAURYL SULFATE</small>
+        </a>
+        
+        <a href="sheabutter.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Sheabutter</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">BUTYROSPERMUM PARKII BUTTER</small>
+        </a>
+        
+        <a href="squalan.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Squalan</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">SQUALANE</small>
+        </a>
+        
+        <a href="stearins-ure.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Stearinsäure</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">STEARIC ACID</small>
+        </a>
+        
+        <a href="triclosan.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Triclosan</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">TRICLOSAN</small>
+        </a>
+        
+        <a href="urea-harnstoff.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Urea (Harnstoff)</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">UREA</small>
+        </a>
+        
+        <a href="vaseline.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Vaseline</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">PETROLATUM</small>
+        </a>
+        
+        <a href="vitamin-e.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Vitamin E</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">TOCOPHEROL</small>
+        </a>
+        
+        <a href="wasser.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Wasser</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">AQUA</small>
+        </a>
+        
+        <a href="xanthan.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Xanthan</strong>
+                <span style="font-size:0.8rem;">⚠️</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">XANTHAN GUM</small>
+        </a>
+        
+        <a href="zinkoxid.html" class="index-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <strong>Zinkoxid</strong>
+                <span style="font-size:0.8rem;">✅</span>
+            </div>
+            <small style="color:#94a3b8; display:block; margin-top:4px;">ZINC OXIDE</small>
+        </a>
+        
             </div>
         </div>
+        
+        <footer>
+            &copy; 2026 Skin-Check Lexikon
+        </footer>
     </body>
     </html>
     
