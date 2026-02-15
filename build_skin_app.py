@@ -196,22 +196,32 @@ html_content = f"""
                     let info = db[inci];
                     if(!info) info = Object.values(db).find(v => v.n.toUpperCase() === inci);
 
-                    if(info) {{
+// ... innerhalb der forEach Schleife ...
+                    if(info) {
                         let style = "inci-safe";
-                        if(info.r.includes("Bedenklich") || info.r.includes("Gefährlich") || info.r.includes("Vorsicht")) {{
+                        if(info.r.includes("Bedenklich") || info.r.includes("Gefährlich") || info.r.includes("Vorsicht")) {
                             style = "inci-danger";
                             riskCount++;
-                        }}
+                        }
                         
+                        // SLUG GENERIEREN FÜR LINK
+                        // Muss identisch zur Python clean_slug Funktion sein!
+                        let slug = info.n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                        let link = `lexikon/${slug}.html`;
+
                         listHtml += `
-                        <div class="inci-item ${{style}}">
+                        <div class="inci-item ${style}" onclick="window.open('${link}', '_blank')">
                             <div>
-                                <div style="font-weight:bold; font-size:0.9rem;">${{info.n}}</div>
-                                <div style="font-size:0.75rem; opacity:0.7;">${{info.d}}</div>
+                                <div style="font-weight:bold; font-size:0.9rem;">${info.n}</div>
+                                <div style="font-size:0.75rem; opacity:0.7;">${info.d}</div>
                             </div>
-                            <div style="font-size:1.2rem;">${{style.includes('danger') ? '⚠️' : '✅'}}</div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div style="font-size:1.2rem;">${style.includes('danger') ? '⚠️' : '✅'}</div>
+                                <span style="opacity:0.3">›</span>
+                            </div>
                         </div>`;
-                    }}
+                    }
+                    }
                 }});
             }} else {{
                 listHtml = '<div style="padding:1rem; text-align:center; opacity:0.5;">Keine INCI-Liste verfügbar.</div>';
