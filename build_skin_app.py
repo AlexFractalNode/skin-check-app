@@ -4,11 +4,16 @@ import os
 OUTPUT_HTML = "index.html"
 OUTPUT_MANIFEST = "manifest.json"
 APP_NAME = "Skin-Check"
+
+# 💰 DEIN GELD-MACHER TAG
+# Hier deine Partner-ID eintragen (z.B. alexskincheck-21)
+AMAZON_TAG = "dein-tag-21" 
+
 # Lila/Blau Verlauf für Kosmetik-Look
 THEME_COLOR = "#4c1d95" 
 BG_gradient = "linear-gradient(135deg, #4c1d95 0%, #1e1b4b 100%)"
 
-# --- 1. MANIFEST (Neues Icon!) ---
+# --- 1. MANIFEST ---
 manifest_content = f"""
 {{
     "name": "{APP_NAME}",
@@ -48,13 +53,12 @@ html_content = f"""
     <style>
         :root {{ 
             --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --muted: #94a3b8;
-            --primary: #8b5cf6; /* Lila */
-            --accent: #ec4899; /* Pink */
-            --safe: #34d399; --danger: #f87171;
+            --primary: #8b5cf6; --accent: #ec4899;
+            --safe: #34d399; --danger: #f87171; --gold: #f59e0b;
         }}
         body {{ font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }}
         
-        /* Neuer Header Style */
+        /* Header */
         header {{ 
             padding: 1rem; text-align: center; 
             background: {BG_gradient}; 
@@ -68,7 +72,7 @@ html_content = f"""
         #reader {{ width: 100%; height: 100%; object-fit: cover; }}
         .scan-frame {{ 
             width: 70%; aspect-ratio: 1; border: 2px solid rgba(255,255,255,0.2); border-radius: 20px;
-            box-shadow: 0 0 0 4000px rgba(0,0,0,0.7); position: relative;
+            box-shadow: 0 0 0 4000px rgba(0,0,0,0.7); position: relative; pointer-events: none;
         }}
         .scan-frame::after {{
             content: ''; position: absolute; inset: -3px; border: 3px solid var(--accent); border-radius: 20px;
@@ -82,10 +86,11 @@ html_content = f"""
             background: var(--card); border-radius: 25px 25px 0 0; 
             padding: 1.5rem; transform: translateY(110%); transition: 0.3s cubic-bezier(0.19, 1, 0.22, 1); 
             box-shadow: 0 -10px 50px rgba(0,0,0,0.6); z-index: 50; max-height: 85vh; overflow-y: auto;
+            padding-bottom: max(2rem, env(safe-area-inset-bottom));
         }}
         #result-sheet.open {{ transform: translateY(0); }}
         
-        /* UI Elements */
+        /* Elements */
         .prod-img {{ width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); margin-right: 15px; background: white; }}
         .badge {{ padding: 4px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-right: 5px; }}
         .b-safe {{ background: rgba(52, 211, 153, 0.1); color: var(--safe); }}
@@ -98,7 +103,20 @@ html_content = f"""
         .inci-danger {{ border-left-color: var(--danger); background: rgba(248, 113, 113, 0.05); }}
         .inci-safe {{ border-left-color: var(--safe); }}
         
-        .btn {{ width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: bold; margin-top: 1rem; background: rgba(255,255,255,0.1); color: white; }}
+        /* Buttons */
+        .btn {{ width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: bold; margin-top: 1rem; cursor: pointer; }}
+        .btn-scan {{ background: rgba(255,255,255,0.1); color: white; }}
+        
+        /* Der Geld-Button 💰 */
+        .btn-affiliate {{ 
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+            color: white; font-size: 1rem; 
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            text-decoration: none; animation: pop 0.3s ease-out;
+        }}
+        @keyframes pop {{ 0% {{ transform: scale(0.9); opacity:0; }} 100% {{ transform: scale(1); opacity:1; }} }}
+        
     </style>
 </head>
 <body>
@@ -107,7 +125,7 @@ html_content = f"""
 
 <div id="scanner-wrapper">
     <div id="reader"></div>
-    <div style="position:absolute; inset:0; display:flex; justify-content:center; align-items:center; pointer-events:none;">
+    <div style="position:absolute; inset:0; display:flex; justify-content:center; align-items:center;">
         <div class="scan-frame"></div>
     </div>
 </div>
@@ -115,15 +133,15 @@ html_content = f"""
 <div id="result-sheet">
     <div style="width:40px; height:4px; background:#ffffff33; margin:0 auto 20px auto; border-radius:2px;"></div>
     <div id="content"></div>
-    <button class="btn" onclick="startScan()">Nächstes Produkt</button>
+    <button class="btn btn-scan" onclick="startScan()">📷 Nächstes Produkt</button>
 </div>
 
 <script>
+    const AMZ_TAG = "{AMAZON_TAG}";
     let db = {{}};
     let scanner = null;
     let isScanning = true;
 
-    // Load DB
     fetch('app_database.json').then(r => r.json()).then(d => db = d);
 
     function startScan() {{
@@ -138,8 +156,6 @@ html_content = f"""
         if(!isScanning) return;
         isScanning = false;
         try {{ scanner.clear(); scanner = null; }} catch(e){{}}
-        
-        // Vibration Feedback
         if(navigator.vibrate) navigator.vibrate(50);
         analyze(code);
     }}
@@ -147,43 +163,37 @@ html_content = f"""
     async function analyze(code) {{
         const ui = document.getElementById('content');
         const sheet = document.getElementById('result-sheet');
-        ui.innerHTML = '<p style="text-align:center">Analysiere Inhaltsstoffe...</p>';
+        ui.innerHTML = '<p style="text-align:center">Analysiere...</p>';
         sheet.classList.add('open');
 
         try {{
-            // WICHTIG: OpenBeautyFacts API!
+            // 1. API Call
             const res = await fetch(`https://world.openbeautyfacts.org/api/v0/product/${{code}}.json`);
             const data = await res.json();
 
             if(data.status === 0) {{
-                ui.innerHTML = `<h3>Nicht gefunden 🤷‍♀️</h3><p>Code ${{code}} ist unbekannt.</p>`;
+                ui.innerHTML = `<h3>Unbekannt</h3><p>Code ${{code}} nicht gefunden.</p>`;
                 return;
             }}
 
             const p = data.product;
-            // API gibt Inhaltsstoffe oft als "en:aqua" zurück
             const ingredients = p.ingredients_original_tags || p.ingredients_tags || [];
             
-            // Checks
-            const hasMicroplastics = ingredients.some(t => t.includes('acrylates') || t.includes('carbomer') || t.includes('nylon'));
+            // 2. Checks
+            const hasMicroplastics = ingredients.some(t => t.includes('acrylates') || t.includes('carbomer') || t.includes('nylon') || t.includes('polyethylene'));
             const hasPalmOil = (p.ingredients_from_palm_oil_n > 0);
 
             let listHtml = '';
             let riskCount = 0;
 
+            // 3. Datenbank Abgleich
             if(ingredients.length > 0) {{
                 ingredients.forEach(tag => {{
-                    // "en:dimethicone" -> "DIMETHICONE"
-                    let inci = tag.split(':')[1] || tag;
-                    inci = inci.toUpperCase().replace(/-/g, ' ');
+                    let inci = (tag.split(':')[1] || tag).toUpperCase().replace(/-/g, ' ');
                     
-                    // Suche in unserer DB
-                    // (Wir suchen auch nach Teilstrings für bessere Trefferquote im MVP)
-                    let info = db[inci]; 
-                    if(!info) {{
-                        // Fallback Suche
-                        info = Object.values(db).find(v => v.n.toUpperCase() === inci);
-                    }}
+                    // Exakter Match oder Teil-Match in unserer DB
+                    let info = db[inci];
+                    if(!info) info = Object.values(db).find(v => v.n.toUpperCase() === inci);
 
                     if(info) {{
                         let style = "inci-safe";
@@ -206,27 +216,44 @@ html_content = f"""
                 listHtml = '<div style="padding:1rem; text-align:center; opacity:0.5;">Keine INCI-Liste verfügbar.</div>';
             }}
 
-            // Header bauen
+            // 4. AFFILIATE LOGIK (Der Geld-Teil 💰)
+            let affiliateBtn = "";
+            if (riskCount > 0 || hasMicroplastics || hasPalmOil) {{
+                // Wir bauen einen smarten Suchbegriff
+                // Nimm den Produktnamen, entferne Sonderzeichen und hänge "Naturkosmetik" dran
+                const cleanName = (p.product_name || '').replace(/[^a-zA-Z0-9 ]/g, '');
+                const search = `Naturkosmetik Alternative ${{cleanName}}`;
+                const link = `https://www.amazon.de/s?k=${{encodeURIComponent(search)}}&tag=${{AMAZZ_TAG}}`;
+                
+                affiliateBtn = `
+                <a href="${{link}}" target="_blank" class="btn btn-affiliate">
+                    <span>✨</span> Gesunde Alternative finden ↗
+                </a>
+                <p style="font-size:0.7rem; text-align:center; color:#aaa; margin-top:5px;">Vermeide schädliche Chemie.</p>
+                `;
+            }}
+
+            // 5. HTML Render
             ui.innerHTML = `
                 <div style="display:flex; align-items:center; margin-bottom:20px;">
                     <img src="${{p.image_front_small_url || 'https://via.placeholder.com/80'}}" class="prod-img">
                     <div>
-                        <div style="font-size:0.8rem; text-transform:uppercase; color:var(--primary);">${{p.brands || 'Marke'}}</div>
-                        <h2 style="margin:0; font-size:1.3rem;">${{p.product_name || 'Produkt'}}</h2>
+                        <div style="font-size:0.8rem; text-transform:uppercase; color:var(--primary);">${{p.brands || ''}}</div>
+                        <h2 style="margin:0; font-size:1.3rem; line-height:1.2;">${{p.product_name || 'Produkt'}}</h2>
                     </div>
                 </div>
 
-                <div style="display:flex; gap:10px; margin-bottom:20px;">
-                    ${{hasMicroplastics ? '<span class="badge b-danger">⚠️ Mikroplastik</span>' : '<span class="badge b-safe">💧 Plastikfrei*</span>'}}
-                    ${{hasPalmOil ? '<span class="badge b-danger">🌴 Palmöl</span>' : ''}}
-                    ${{riskCount === 0 ? '<span class="badge b-safe">✨ Clean</span>' : ''}}
+                <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+                    ${{hasMicroplastics ? '<span class="badge b-danger">⚠️ Mikroplastik</span>' : ''}}
+                    ${{riskCount > 0 ? `<span class="badge b-danger">⚠️ ${{riskCount}} Bedenklich</span>` : '<span class="badge b-safe">✨ Keine Risiken</span>'}}
                 </div>
                 
-                <h3 style="font-size:1rem; opacity:0.7; margin-bottom:10px;">Gefundene Inhaltsstoffe</h3>
+                ${{affiliateBtn}}
+                
+                <h3 style="font-size:1rem; opacity:0.7; margin: 20px 0 10px 0;">Analyse</h3>
                 <div style="display:flex; flex-direction:column; gap:5px;">
                     ${{listHtml}}
                 </div>
-                <p style="font-size:0.7rem; color:#aaa; margin-top:10px; text-align:center;">*Basierend auf verfügbaren Daten.</p>
             `;
 
         }} catch(e) {{
@@ -240,7 +267,7 @@ html_content = f"""
 </html>
 """
 
-print("💄 Erstelle App...")
+print("💄 Erstelle App mit Affiliate-Engine...")
 with open(OUTPUT_MANIFEST, "w", encoding="utf-8") as f: f.write(manifest_content)
 with open(OUTPUT_HTML, "w", encoding="utf-8") as f: f.write(html_content)
 print("✅ Skin-Check Ready!")
