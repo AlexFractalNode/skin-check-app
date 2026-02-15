@@ -4,10 +4,11 @@ import os
 OUTPUT_HTML = "index.html"
 OUTPUT_MANIFEST = "manifest.json"
 APP_NAME = "Skin-Check"
-LEXIKON_BASE = "./lexikon/" # Relativer Link zum Unterordner
+
+# Link zum Lexikon (Relativ)
+LEXIKON_BASE = "lexikon"
 
 # 💰 DEIN GELD-MACHER TAG
-# Hier deine Partner-ID eintragen (z.B. alexskincheck-21)
 AMAZON_TAG = "dein-tag-21" 
 
 # Lila/Blau Verlauf für Kosmetik-Look
@@ -39,6 +40,7 @@ manifest_content = f"""
 """
 
 # --- 2. HTML/JS CODE ---
+# WICHTIG: Hier sind alle JS/CSS Klammern verdoppelt {{ }} damit Python nicht abstürzt!
 html_content = f"""
 <!DOCTYPE html>
 <html lang="de">
@@ -100,7 +102,9 @@ html_content = f"""
         .inci-item {{ 
             background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; margin-bottom: 8px; 
             display: flex; justify-content: space-between; align-items: center; border-left: 3px solid transparent;
+            cursor: pointer; transition: background 0.2s;
         }}
+        .inci-item:active {{ background: rgba(255,255,255,0.1); }}
         .inci-danger {{ border-left-color: var(--danger); background: rgba(248, 113, 113, 0.05); }}
         .inci-safe {{ border-left-color: var(--safe); }}
         
@@ -139,6 +143,7 @@ html_content = f"""
 
 <script>
     const AMZ_TAG = "{AMAZON_TAG}";
+    const LEXIKON_BASE = "{LEXIKON_BASE}";
     let db = {{}};
     let scanner = null;
     let isScanning = true;
@@ -168,7 +173,7 @@ html_content = f"""
         sheet.classList.add('open');
 
         try {{
-            // 1. API Call
+            // 1. API Call (OpenBeautyFacts)
             const res = await fetch(`https://world.openbeautyfacts.org/api/v0/product/${{code}}.json`);
             const data = await res.json();
 
@@ -196,32 +201,29 @@ html_content = f"""
                     let info = db[inci];
                     if(!info) info = Object.values(db).find(v => v.n.toUpperCase() === inci);
 
-// ... innerhalb der forEach Schleife ...
-                    if(info) {
+                    if(info) {{
                         let style = "inci-safe";
-                        if(info.r.includes("Bedenklich") || info.r.includes("Gefährlich") || info.r.includes("Vorsicht")) {
+                        if(info.r.includes("Bedenklich") || info.r.includes("Gefährlich") || info.r.includes("Vorsicht")) {{
                             style = "inci-danger";
                             riskCount++;
-                        }
+                        }}
                         
-                        // SLUG GENERIEREN FÜR LINK
-                        // Muss identisch zur Python clean_slug Funktion sein!
+                        // SEO LINK GENERIEREN 🔗
                         let slug = info.n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-                        let link = `lexikon/${slug}.html`;
-
+                        let link = `${{LEXIKON_BASE}}/${{slug}}.html`;
+                        
                         listHtml += `
-                        <div class="inci-item ${style}" onclick="window.open('${link}', '_blank')">
+                        <div class="inci-item ${{style}}" onclick="window.open('${{link}}', '_blank')">
                             <div>
-                                <div style="font-weight:bold; font-size:0.9rem;">${info.n}</div>
-                                <div style="font-size:0.75rem; opacity:0.7;">${info.d}</div>
+                                <div style="font-weight:bold; font-size:0.9rem;">${{info.n}}</div>
+                                <div style="font-size:0.75rem; opacity:0.7;">${{info.d}}</div>
                             </div>
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <div style="font-size:1.2rem;">${style.includes('danger') ? '⚠️' : '✅'}</div>
+                                <div style="font-size:1.2rem;">${{style.includes('danger') ? '⚠️' : '✅'}}</div>
                                 <span style="opacity:0.3">›</span>
                             </div>
                         </div>`;
-                    }
-                    }
+                    }}
                 }});
             }} else {{
                 listHtml = '<div style="padding:1rem; text-align:center; opacity:0.5;">Keine INCI-Liste verfügbar.</div>';
@@ -230,11 +232,9 @@ html_content = f"""
             // 4. AFFILIATE LOGIK (Der Geld-Teil 💰)
             let affiliateBtn = "";
             if (riskCount > 0 || hasMicroplastics || hasPalmOil) {{
-                // Wir bauen einen smarten Suchbegriff
-                // Nimm den Produktnamen, entferne Sonderzeichen und hänge "Naturkosmetik" dran
                 const cleanName = (p.product_name || '').replace(/[^a-zA-Z0-9 ]/g, '');
                 const search = `Naturkosmetik Alternative ${{cleanName}}`;
-                const link = `https://www.amazon.de/s?k=${{encodeURIComponent(search)}}&tag=${{AMAZZ_TAG}}`;
+                const link = `https://www.amazon.de/s?k=${{encodeURIComponent(search)}}&tag=${{AMZ_TAG}}`;
                 
                 affiliateBtn = `
                 <a href="${{link}}" target="_blank" class="btn btn-affiliate">
@@ -261,7 +261,7 @@ html_content = f"""
                 
                 ${{affiliateBtn}}
                 
-                <h3 style="font-size:1rem; opacity:0.7; margin: 20px 0 10px 0;">Analyse</h3>
+                <h3 style="font-size:1rem; opacity:0.7; margin: 20px 0 10px 0;">Analyse (Tippen für Details)</h3>
                 <div style="display:flex; flex-direction:column; gap:5px;">
                     ${{listHtml}}
                 </div>
@@ -278,7 +278,7 @@ html_content = f"""
 </html>
 """
 
-print("💄 Erstelle App mit Affiliate-Engine...")
+print("💄 Erstelle App mit Affiliate-Engine & Lexikon-Links...")
 with open(OUTPUT_MANIFEST, "w", encoding="utf-8") as f: f.write(manifest_content)
 with open(OUTPUT_HTML, "w", encoding="utf-8") as f: f.write(html_content)
 print("✅ Skin-Check Ready!")
