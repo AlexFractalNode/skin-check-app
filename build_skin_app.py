@@ -4,6 +4,7 @@ import os
 OUTPUT_HTML = "index.html"
 OUTPUT_MANIFEST = "manifest.json"
 APP_NAME = "Skin-Check"
+LEXIKON_BASE = "./lexikon/" # Relativer Link zum Unterordner
 
 # 💰 DEIN GELD-MACHER TAG
 # Hier deine Partner-ID eintragen (z.B. alexskincheck-21)
