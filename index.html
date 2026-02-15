@@ -59,7 +59,9 @@
         .inci-item { 
             background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; margin-bottom: 8px; 
             display: flex; justify-content: space-between; align-items: center; border-left: 3px solid transparent;
+            cursor: pointer; transition: background 0.2s;
         }
+        .inci-item:active { background: rgba(255,255,255,0.1); }
         .inci-danger { border-left-color: var(--danger); background: rgba(248, 113, 113, 0.05); }
         .inci-safe { border-left-color: var(--safe); }
         
@@ -98,6 +100,7 @@
 
 <script>
     const AMZ_TAG = "dein-tag-21";
+    const LEXIKON_BASE = "lexikon";
     let db = {};
     let scanner = null;
     let isScanning = true;
@@ -127,7 +130,7 @@
         sheet.classList.add('open');
 
         try {
-            // 1. API Call
+            // 1. API Call (OpenBeautyFacts)
             const res = await fetch(`https://world.openbeautyfacts.org/api/v0/product/${code}.json`);
             const data = await res.json();
 
@@ -162,13 +165,20 @@
                             riskCount++;
                         }
                         
+                        // SEO LINK GENERIEREN 🔗
+                        let slug = info.n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                        let link = `${LEXIKON_BASE}/${slug}.html`;
+                        
                         listHtml += `
-                        <div class="inci-item ${style}">
+                        <div class="inci-item ${style}" onclick="window.open('${link}', '_blank')">
                             <div>
                                 <div style="font-weight:bold; font-size:0.9rem;">${info.n}</div>
                                 <div style="font-size:0.75rem; opacity:0.7;">${info.d}</div>
                             </div>
-                            <div style="font-size:1.2rem;">${style.includes('danger') ? '⚠️' : '✅'}</div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div style="font-size:1.2rem;">${style.includes('danger') ? '⚠️' : '✅'}</div>
+                                <span style="opacity:0.3">›</span>
+                            </div>
                         </div>`;
                     }
                 });
@@ -179,11 +189,9 @@
             // 4. AFFILIATE LOGIK (Der Geld-Teil 💰)
             let affiliateBtn = "";
             if (riskCount > 0 || hasMicroplastics || hasPalmOil) {
-                // Wir bauen einen smarten Suchbegriff
-                // Nimm den Produktnamen, entferne Sonderzeichen und hänge "Naturkosmetik" dran
                 const cleanName = (p.product_name || '').replace(/[^a-zA-Z0-9 ]/g, '');
                 const search = `Naturkosmetik Alternative ${cleanName}`;
-                const link = `https://www.amazon.de/s?k=${encodeURIComponent(search)}&tag=${AMAZZ_TAG}`;
+                const link = `https://www.amazon.de/s?k=${encodeURIComponent(search)}&tag=${AMZ_TAG}`;
                 
                 affiliateBtn = `
                 <a href="${link}" target="_blank" class="btn btn-affiliate">
@@ -210,7 +218,7 @@
                 
                 ${affiliateBtn}
                 
-                <h3 style="font-size:1rem; opacity:0.7; margin: 20px 0 10px 0;">Analyse</h3>
+                <h3 style="font-size:1rem; opacity:0.7; margin: 20px 0 10px 0;">Analyse (Tippen für Details)</h3>
                 <div style="display:flex; flex-direction:column; gap:5px;">
                     ${listHtml}
                 </div>
