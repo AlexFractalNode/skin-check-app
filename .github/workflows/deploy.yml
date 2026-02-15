@@ -1,4 +1,4 @@
-name: Build Skin-Check
+name: Build Skin-Check Ecosystem
 
 on:
   push:
@@ -19,12 +19,15 @@ jobs:
       - name: 1. Datenbank generieren 🧪
         run: python generate_inci.py
         
-      - name: 2. App bauen 💅
+      - name: 2. Lexikon generieren 📚
+        run: python build_skin_lexikon.py
+
+      - name: 3. App bauen 💅
         run: python build_skin_app.py
         
       - name: Speichern
         run: |
           git config --global user.name "Skin-Bot 🤖"
           git config --global user.email "bot@skincheck.app"
-          git add index.html manifest.json app_database.json
-          git diff-index --quiet HEAD || (git commit -m "🚀 Update Skin-Check" && git push)
+          git add .
+          git diff-index --quiet HEAD || (git commit -m "🚀 Ecosystem Update" && git push)
