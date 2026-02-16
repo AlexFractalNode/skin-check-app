@@ -320,5 +320,6 @@ html_content = f"""
 </body>
 </html>
 """
-
-Wenn du das hochlädst und die App neu lädst (Seite aktualisieren, Cache leeren), solltest du problemlos den "Kamera zulassen"-Button klicken können, da das Overlay jetzt Klicks ignoriert. ✅
+with open(OUTPUT_MANIFEST, "w", encoding="utf-8") as f: f.write(manifest_content)
+with open(OUTPUT_HTML, "w", encoding="utf-8") as f: f.write(html_content)
+print("✅ Skin-Check Ready!")
