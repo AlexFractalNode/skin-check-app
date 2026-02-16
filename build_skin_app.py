@@ -11,6 +11,9 @@ LEXIKON_BASE = "lexikon"
 # 💰 DEIN GELD-MACHER TAG
 AMAZON_TAG = "dein-tag-21" 
 
+# 📧 FEEDBACK ZIEL (Hier deine Email oder Google Form Link eintragen)
+FEEDBACK_MAIL = "feedback@skincheck.app"
+
 # Lila/Blau Verlauf für Kosmetik-Look
 THEME_COLOR = "#4c1d95" 
 BG_gradient = "linear-gradient(135deg, #4c1d95 0%, #1e1b4b 100%)"
@@ -40,7 +43,6 @@ manifest_content = f"""
 """
 
 # --- 2. HTML/JS CODE ---
-# WICHTIG: Hier sind alle JS/CSS Klammern verdoppelt {{ }} damit Python nicht abstürzt!
 html_content = f"""
 <!DOCTYPE html>
 <html lang="de">
@@ -118,8 +120,16 @@ html_content = f"""
             color: white; font-size: 1rem; 
             box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            text-decoration: none; animation: pop 0.3s ease-out;
+            text-decoration: none; animation: pop 0.3s ease-out; margin-bottom: 1rem;
         }}
+        
+        /* Feedback Button */
+        .feedback-area {{ margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; text-align: center; }}
+        .btn-feedback {{
+            background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.8rem; padding: 8px 16px; border-radius: 99px; text-decoration: none; display: inline-block;
+        }}
+        
         @keyframes pop {{ 0% {{ transform: scale(0.9); opacity:0; }} 100% {{ transform: scale(1); opacity:1; }} }}
         
     </style>
@@ -144,6 +154,8 @@ html_content = f"""
 <script>
     const AMZ_TAG = "{AMAZON_TAG}";
     const LEXIKON_BASE = "{LEXIKON_BASE}";
+    const FEEDBACK_MAIL = "{FEEDBACK_MAIL}";
+    
     let db = {{}};
     let scanner = null;
     let isScanning = true;
@@ -177,8 +189,19 @@ html_content = f"""
             const res = await fetch(`https://world.openbeautyfacts.org/api/v0/product/${{code}}.json`);
             const data = await res.json();
 
+            // FALL 1: UNBEKANNTES PRODUKT
             if(data.status === 0) {{
-                ui.innerHTML = `<h3>Unbekannt</h3><p>Code ${{code}} nicht gefunden.</p>`;
+                ui.innerHTML = `
+                    <div style="text-align:center; padding: 2rem 0;">
+                        <div style="font-size:3rem;">🤷‍♀️</div>
+                        <h3>Unbekanntes Produkt</h3>
+                        <p style="color:var(--muted)">Barcode ${{code}} ist noch nicht in der Datenbank.</p>
+                        
+                        <a href="mailto:${{FEEDBACK_MAIL}}?subject=Neues%20Produkt%20${{code}}&body=Hey,%20ich%20habe%20ein%20Produkt%20gescannt,%20das%20fehlt:%0A%0ABarcode:%20${{code}}%0AProduktname:%20..." class="btn btn-affiliate" style="background:var(--primary);">
+                            ➕ Jetzt melden
+                        </a>
+                    </div>
+                `;
                 return;
             }}
 
@@ -197,7 +220,6 @@ html_content = f"""
                 ingredients.forEach(tag => {{
                     let inci = (tag.split(':')[1] || tag).toUpperCase().replace(/-/g, ' ');
                     
-                    // Exakter Match oder Teil-Match in unserer DB
                     let info = db[inci];
                     if(!info) info = Object.values(db).find(v => v.n.toUpperCase() === inci);
 
@@ -208,7 +230,6 @@ html_content = f"""
                             riskCount++;
                         }}
                         
-                        // SEO LINK GENERIEREN 🔗
                         let slug = info.n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
                         let link = `${{LEXIKON_BASE}}/${{slug}}.html`;
                         
@@ -229,7 +250,7 @@ html_content = f"""
                 listHtml = '<div style="padding:1rem; text-align:center; opacity:0.5;">Keine INCI-Liste verfügbar.</div>';
             }}
 
-            // 4. AFFILIATE LOGIK (Der Geld-Teil 💰)
+            // 4. AFFILIATE & FEEDBACK
             let affiliateBtn = "";
             if (riskCount > 0 || hasMicroplastics || hasPalmOil) {{
                 const cleanName = (p.product_name || '').replace(/[^a-zA-Z0-9 ]/g, '');
@@ -240,9 +261,11 @@ html_content = f"""
                 <a href="${{link}}" target="_blank" class="btn btn-affiliate">
                     <span>✨</span> Gesunde Alternative finden ↗
                 </a>
-                <p style="font-size:0.7rem; text-align:center; color:#aaa; margin-top:5px;">Vermeide schädliche Chemie.</p>
                 `;
             }}
+
+            // FEEDBACK LINK GENERIEREN
+            const feedbackLink = `mailto:${{FEEDBACK_MAIL}}?subject=Fehler%20${{p.product_name}}&body=Barcode:${{code}}%0AFehler:%20...`;
 
             // 5. HTML Render
             ui.innerHTML = `
@@ -261,9 +284,13 @@ html_content = f"""
                 
                 ${{affiliateBtn}}
                 
-                <h3 style="font-size:1rem; opacity:0.7; margin: 20px 0 10px 0;">Analyse (Tippen für Details)</h3>
+                <h3 style="font-size:1rem; opacity:0.7; margin: 20px 0 10px 0;">Analyse</h3>
                 <div style="display:flex; flex-direction:column; gap:5px;">
                     ${{listHtml}}
+                </div>
+                
+                <div class="feedback-area">
+                    <a href="${{feedbackLink}}" class="btn-feedback">📢 Fehler melden</a>
                 </div>
             `;
 
@@ -278,7 +305,7 @@ html_content = f"""
 </html>
 """
 
-print("💄 Erstelle App mit Affiliate-Engine & Lexikon-Links...")
+print("💄 Erstelle App mit Community-Feedback...")
 with open(OUTPUT_MANIFEST, "w", encoding="utf-8") as f: f.write(manifest_content)
 with open(OUTPUT_HTML, "w", encoding="utf-8") as f: f.write(html_content)
 print("✅ Skin-Check Ready!")
