@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: '3.9'
 
-      # SCHRITT 1: Datenbank (Das Wissen)
+      # SCHRITT 1: Datenbank (Die Basis)
       - name: 1. Datenbank generieren 🧪
         run: python generate_inci.py
       
@@ -29,18 +29,22 @@ jobs:
       - name: 2. Lexikon generieren 📚
         run: python build_skin_lexikon.py
 
-      # SCHRITT 3: App (Der Scanner)
-      - name: 3. App bauen 💅
+      # SCHRITT 3: Blog (Die Artikel) 🆕
+      - name: 3. Blog generieren ✍️
+        run: python build_skin_blog.py
+
+      # SCHRITT 4: App (Der Scanner)
+      - name: 4. App bauen 💅
         run: python build_skin_app.py
         
-      # SCHRITT 4: Speichern
+      # SCHRITT 5: Speichern
       - name: Alles speichern & veröffentlichen 🚀
         run: |
           git config --global user.name "Skin-Bot 🤖"
           git config --global user.email "bot@skincheck.app"
           
-          # Wir fügen alles hinzu (auch den neuen 'lexikon' Ordner)
+          # Alles hinzufügen (auch den neuen 'blog' Ordner)
           git add .
           
           # Commit & Push nur bei Änderungen
-          git diff-index --quiet HEAD || (git commit -m "🚀 Ecosystem Update: App + Lexikon Live" && git push)
+          git diff-index --quiet HEAD || (git commit -m "🚀 Ecosystem Update: Blog Live" && git push)
