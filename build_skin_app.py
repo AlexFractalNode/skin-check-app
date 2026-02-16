@@ -14,7 +14,7 @@ AMAZON_TAG = "dein-tag-21"
 # 📧 FEEDBACK ZIEL
 FEEDBACK_MAIL = "feedback@skincheck.app"
 
-# 🌍 URL DEINER APP (Für den Share-Link)
+# 🌍 URL DEINER APP
 APP_URL_PUBLIC = "https://alexfractalnode.github.io/skin-check-app/"
 
 # Lila/Blau Verlauf für Kosmetik-Look
@@ -63,9 +63,14 @@ html_content = f"""
             --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --muted: #94a3b8;
             --primary: #8b5cf6; --accent: #ec4899;
             --safe: #34d399; --danger: #f87171; --gold: #f59e0b;
+            --nav-height: 70px;
         }}
         body {{ font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }}
         
+        /* VIEWS (Tabs) */
+        .view {{ flex: 1; display: none; flex-direction: column; height: 100%; overflow: hidden; position: relative; }}
+        .view.active {{ display: flex; }}
+
         /* Header */
         header {{ 
             padding: 1rem; text-align: center; 
@@ -75,13 +80,12 @@ html_content = f"""
         }}
         header h1 {{ margin: 0; font-size: 1.2rem; letter-spacing: 1px; font-weight: 800; }}
 
-        /* Scanner Bereich */
+        /* SCANNER VIEW */
         #scanner-wrapper {{ 
             flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; 
         }}
         #reader {{ width: 100%; height: 100%; object-fit: cover; z-index: 1; }}
         
-        /* Overlay (Klicks durchlassen) */
         .scan-overlay {{
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             display: flex; align-items: center; justify-content: center;
@@ -97,12 +101,45 @@ html_content = f"""
         }}
         @keyframes pulse {{ 0% {{ top:0; opacity:0; }} 50% {{ opacity:1; }} 100% {{ top:100%; opacity:0; }} }}
         
-        /* Result Sheet */
+        /* HISTORY VIEW */
+        #history-list {{ 
+            flex: 1; overflow-y: auto; padding: 1rem; padding-bottom: calc(var(--nav-height) + 20px); 
+        }}
+        .h-item {{
+            background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px;
+            display: flex; gap: 12px; align-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05);
+        }}
+        .h-img {{ width: 50px; height: 50px; border-radius: 8px; background: #334155; object-fit: cover; }}
+        .h-info {{ flex: 1; }}
+        .h-name {{ font-weight: bold; font-size: 0.95rem; margin-bottom: 2px; }}
+        .h-brand {{ font-size: 0.8rem; color: var(--muted); }}
+        .h-date {{ font-size: 0.7rem; color: var(--muted); opacity: 0.7; }}
+        .h-risk {{ width: 10px; height: 10px; border-radius: 50%; }}
+        .bg-green {{ background: var(--safe); box-shadow: 0 0 5px var(--safe); }}
+        .bg-red {{ background: var(--danger); box-shadow: 0 0 5px var(--danger); }}
+
+        /* BOTTOM NAV */
+        .bottom-nav {{
+            height: var(--nav-height); background: #1e1b4b;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex; justify-content: space-around; align-items: center;
+            padding-bottom: env(safe-area-inset-bottom); z-index: 50;
+        }}
+        .nav-btn {{
+            background: none; border: none; color: var(--muted);
+            font-size: 0.75rem; font-weight: 600;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            cursor: pointer; padding: 10px; width: 100%;
+        }}
+        .nav-btn.active {{ color: var(--primary); }}
+        .nav-icon {{ font-size: 1.4rem; }}
+
+        /* RESULT SHEET */
         #result-sheet {{ 
             position: absolute; bottom: 0; left: 0; right: 0; 
             background: var(--card); border-radius: 25px 25px 0 0; 
             padding: 1.5rem; transform: translateY(110%); transition: 0.3s cubic-bezier(0.19, 1, 0.22, 1); 
-            box-shadow: 0 -10px 50px rgba(0,0,0,0.6); z-index: 50; max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.6); z-index: 60; max-height: 85vh; overflow-y: auto;
             padding-bottom: max(2rem, env(safe-area-inset-bottom));
         }}
         #result-sheet.open {{ transform: translateY(0); }}
@@ -118,7 +155,6 @@ html_content = f"""
             display: flex; justify-content: space-between; align-items: center; border-left: 3px solid transparent;
             cursor: pointer; transition: background 0.2s;
         }}
-        .inci-item:active {{ background: rgba(255,255,255,0.1); }}
         .inci-danger {{ border-left-color: var(--danger); background: rgba(248, 113, 113, 0.05); }}
         .inci-safe {{ border-left-color: var(--safe); }}
         
@@ -137,6 +173,7 @@ html_content = f"""
         .btn-share {{
             background: rgba(236, 72, 153, 0.2); color: #f472b6; 
             margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;
+            text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold;
         }}
         
         .feedback-area {{ margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; text-align: center; }}
@@ -148,17 +185,39 @@ html_content = f"""
 </head>
 <body>
 
-<header><h1>Skin-Check 💄</h1></header>
+<header id="main-header"><h1>Skin-Check 💄</h1></header>
 
-<div id="scanner-wrapper">
-    <div id="reader"></div>
-    <div class="scan-overlay"><div class="scan-frame"></div></div>
+<div id="view-scan" class="view active">
+    <div id="scanner-wrapper">
+        <div id="reader"></div>
+        <div class="scan-overlay"><div class="scan-frame"></div></div>
+    </div>
+</div>
+
+<div id="view-history" class="view">
+    <div id="history-list">
+        <div style="text-align:center; padding: 3rem; color: var(--muted);">
+            <div style="font-size:2rem; margin-bottom:1rem;">🕰️</div>
+            Noch keine Scans.<br>Dein Verlauf erscheint hier.
+        </div>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('scan')">
+        <span class="nav-icon">📷</span>
+        Scanner
+    </button>
+    <button class="nav-btn" onclick="switchTab('history')">
+        <span class="nav-icon">📜</span>
+        Verlauf
+    </button>
 </div>
 
 <div id="result-sheet">
     <div style="width:40px; height:4px; background:#ffffff33; margin:0 auto 20px auto; border-radius:2px;"></div>
     <div id="content"></div>
-    <button class="btn btn-scan" onclick="startScan()">📷 Nächstes Produkt</button>
+    <button class="btn btn-scan" onclick="closeSheet()">Schließen</button>
 </div>
 
 <script>
@@ -170,15 +229,94 @@ html_content = f"""
     let db = {{}};
     let scanner = null;
     let isScanning = true;
+    let historyData = JSON.parse(localStorage.getItem('skincheck_history') || '[]');
 
     fetch('app_database.json').then(r => r.json()).then(d => db = d);
+    renderHistory(); // Init History
 
+    // --- TABS ---
+    function switchTab(tab) {{
+        document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        
+        if(tab === 'scan') {{
+            document.getElementById('view-scan').classList.add('active');
+            document.querySelectorAll('.nav-btn')[0].classList.add('active');
+            document.getElementById('main-header').innerText = "Skin-Check 💄";
+            startScan();
+        }} else {{
+            document.getElementById('view-history').classList.add('active');
+            document.querySelectorAll('.nav-btn')[1].classList.add('active');
+            document.getElementById('main-header').innerText = "Verlauf 🕰️";
+            stopScanner();
+            renderHistory();
+        }}
+    }}
+
+    // --- HISTORY ---
+    function addToHistory(product, hasRisk) {{
+        // Duplikate entfernen
+        historyData = historyData.filter(h => h.code !== product._id);
+        
+        const newItem = {{
+            code: product._id,
+            name: product.product_name || 'Unbekannt',
+            brand: product.brands || '',
+            img: product.image_front_small_url || '',
+            risk: hasRisk, // true/false
+            date: new Date().toLocaleDateString()
+        }};
+        
+        historyData.unshift(newItem);
+        if(historyData.length > 50) historyData.pop();
+        
+        localStorage.setItem('skincheck_history', JSON.stringify(historyData));
+        renderHistory();
+    }}
+
+    function renderHistory() {{
+        const list = document.getElementById('history-list');
+        if(historyData.length === 0) return;
+        
+        list.innerHTML = '';
+        historyData.forEach(item => {{
+            let riskClass = item.risk ? 'bg-red' : 'bg-green';
+            list.innerHTML += `
+            <div class="h-item" onclick="analyze('${{item.code}}')">
+                <img src="${{item.img || 'https://via.placeholder.com/50'}}" class="h-img">
+                <div class="h-info">
+                    <div class="h-name">${{item.name}}</div>
+                    <div class="h-brand">${{item.brand}}</div>
+                    <div class="h-date">${{item.date}}</div>
+                </div>
+                <div class="h-risk ${{riskClass}}"></div>
+            </div>`;
+        }});
+    }}
+
+    // --- SCANNER ---
     function startScan() {{
         document.getElementById('result-sheet').classList.remove('open');
         if(scanner) return;
         scanner = new Html5QrcodeScanner("reader", {{ fps: 10, qrbox: 250, facingMode: "environment" }});
         scanner.render(onScan, e => {{}});
         isScanning = true;
+    }}
+
+    function stopScanner() {{
+        if(scanner) {{
+            try {{ scanner.clear(); }} catch(e) {{}}
+            scanner = null;
+        }}
+        isScanning = false;
+    }}
+    
+    function closeSheet() {{
+        document.getElementById('result-sheet').classList.remove('open');
+        // Wenn wir im Scanner Tab sind, Scanner neu starten
+        if(document.getElementById('view-scan').classList.contains('active')) {{
+            startScan();
+        }}
     }}
 
     function onScan(code) {{
@@ -196,11 +334,9 @@ html_content = f"""
         sheet.classList.add('open');
 
         try {{
-            // 1. API Call
             const res = await fetch(`https://world.openbeautyfacts.org/api/v0/product/${{code}}.json`);
             const data = await res.json();
 
-            // UNBEKANNT
             if(data.status === 0) {{
                 ui.innerHTML = `
                     <div style="text-align:center; padding: 2rem 0;">
@@ -215,14 +351,13 @@ html_content = f"""
             const p = data.product;
             const ingredients = p.ingredients_original_tags || p.ingredients_tags || [];
             
-            // 2. Checks
+            // Checks
             const hasMicroplastics = ingredients.some(t => t.includes('acrylates') || t.includes('carbomer') || t.includes('nylon') || t.includes('polyethylene'));
             const hasPalmOil = (p.ingredients_from_palm_oil_n > 0);
 
             let listHtml = '';
             let riskCount = 0;
 
-            // 3. Datenbank
             if(ingredients.length > 0) {{
                 ingredients.forEach(tag => {{
                     let inci = (tag.split(':')[1] || tag).toUpperCase().replace(/-/g, ' ');
@@ -255,16 +390,19 @@ html_content = f"""
                 listHtml = '<div style="padding:1rem; text-align:center; opacity:0.5;">Keine INCI-Liste verfügbar.</div>';
             }}
 
-            // 4. SMART ACTIONS (Affiliate + Share)
+            // HISTORY SPEICHERN
+            addToHistory(p, (riskCount > 0 || hasMicroplastics));
+
+            // ACTIONS
             let actionBtns = "";
-            let shareText = `Ich habe ${{(p.product_name||'ein Produkt')}} mit Skin-Check gescannt. Alles safe! ✅`;
+            let shareText = `Check: ${{(p.product_name||'Produkt')}} ist safe! ✅`;
             
             if (riskCount > 0 || hasMicroplastics || hasPalmOil) {{
                 const cleanName = (p.product_name || '').replace(/[^a-zA-Z0-9 ]/g, '');
                 const search = `Naturkosmetik Alternative ${{cleanName}}`;
                 const link = `https://www.amazon.de/s?k=${{encodeURIComponent(search)}}&tag=${{AMZ_TAG}}`;
                 
-                shareText = `😱 Ich habe ${{(p.product_name||'dieses Produkt')}} gescannt und bedenkliche Stoffe gefunden! Check deine Produkte auch:`;
+                shareText = `😱 ${{(p.product_name||'Dieses Produkt')}} enthält bedenkliche Stoffe! Check es hier:`;
                 
                 actionBtns += `
                 <a href="${{link}}" target="_blank" class="btn btn-affiliate">
@@ -272,14 +410,11 @@ html_content = f"""
                 </a>`;
             }}
             
-            // Share Link Generieren (WhatsApp / Universal)
             const shareUrl = `https://wa.me/?text=${{encodeURIComponent(shareText + " " + APP_URL)}}`;
             actionBtns += `<a href="${{shareUrl}}" target="_blank" class="btn btn-share">📤 Warnung teilen</a>`;
 
-
             const feedbackLink = `mailto:${{FEEDBACK_MAIL}}?subject=Fehler%20${{p.product_name}}&body=Barcode:${{code}}`;
 
-            // 5. HTML Render
             ui.innerHTML = `
                 <div style="display:flex; align-items:center; margin-bottom:20px;">
                     <img src="${{p.image_front_small_url || 'https://via.placeholder.com/80'}}" class="prod-img">
@@ -317,13 +452,7 @@ html_content = f"""
 </html>
 """
 
-# 3. DATEIEN SCHREIBEN
-print(f"💄 Erstelle {OUTPUT_MANIFEST}...")
-with open(OUTPUT_MANIFEST, "w", encoding="utf-8") as f:
-    f.write(manifest_content)
-
-print(f"💄 Erstelle {OUTPUT_HTML} (mit Social Share)...")
-with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
-    f.write(html_content)
-
+print("💄 Erstelle App V5.0 (History & Tabs)...")
+with open(OUTPUT_MANIFEST, "w", encoding="utf-8") as f: f.write(manifest_content)
+with open(OUTPUT_HTML, "w", encoding="utf-8") as f: f.write(html_content)
 print("✅ Skin-Check Ready!")
