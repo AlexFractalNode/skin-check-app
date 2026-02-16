@@ -14,6 +14,9 @@ AMAZON_TAG = "dein-tag-21"
 # 📧 FEEDBACK ZIEL
 FEEDBACK_MAIL = "feedback@skincheck.app"
 
+# 🌍 URL DEINER APP (Für den Share-Link)
+APP_URL_PUBLIC = "https://alexfractalnode.github.io/skin-check-app/"
+
 # Lila/Blau Verlauf für Kosmetik-Look
 THEME_COLOR = "#4c1d95" 
 BG_gradient = "linear-gradient(135deg, #4c1d95 0%, #1e1b4b 100%)"
@@ -76,20 +79,14 @@ html_content = f"""
         #scanner-wrapper {{ 
             flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; 
         }}
+        #reader {{ width: 100%; height: 100%; object-fit: cover; z-index: 1; }}
         
-        /* Der eigentliche Kamera-Feed */
-        #reader {{ 
-            width: 100%; height: 100%; object-fit: cover; z-index: 1; 
-        }}
-        
-        /* Das Overlay (Rahmen) - Muss über dem Reader liegen, aber Klicks durchlassen */
+        /* Overlay (Klicks durchlassen) */
         .scan-overlay {{
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             display: flex; align-items: center; justify-content: center;
-            pointer-events: none; /* WICHTIG: Klicks gehen durch! */
-            z-index: 10;
+            pointer-events: none; z-index: 10;
         }}
-
         .scan-frame {{ 
             width: 70%; aspect-ratio: 1; border: 2px solid rgba(255,255,255,0.2); border-radius: 20px;
             box-shadow: 0 0 0 4000px rgba(0,0,0,0.7); position: relative;
@@ -129,7 +126,6 @@ html_content = f"""
         .btn {{ width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: bold; margin-top: 1rem; cursor: pointer; }}
         .btn-scan {{ background: rgba(255,255,255,0.1); color: white; }}
         
-        /* Der Geld-Button 💰 */
         .btn-affiliate {{ 
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
             color: white; font-size: 1rem; 
@@ -138,12 +134,13 @@ html_content = f"""
             text-decoration: none; animation: pop 0.3s ease-out; margin-bottom: 1rem;
         }}
         
-        /* Feedback Button */
-        .feedback-area {{ margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; text-align: center; }}
-        .btn-feedback {{
-            background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.8rem; padding: 8px 16px; border-radius: 99px; text-decoration: none; display: inline-block;
+        .btn-share {{
+            background: rgba(236, 72, 153, 0.2); color: #f472b6; 
+            margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;
         }}
+        
+        .feedback-area {{ margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; text-align: center; }}
+        .btn-feedback {{ background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,0.1); font-size: 0.8rem; padding: 8px 16px; border-radius: 99px; text-decoration: none; display: inline-block; }}
         
         @keyframes pop {{ 0% {{ transform: scale(0.9); opacity:0; }} 100% {{ transform: scale(1); opacity:1; }} }}
         
@@ -155,10 +152,7 @@ html_content = f"""
 
 <div id="scanner-wrapper">
     <div id="reader"></div>
-    
-    <div class="scan-overlay">
-        <div class="scan-frame"></div>
-    </div>
+    <div class="scan-overlay"><div class="scan-frame"></div></div>
 </div>
 
 <div id="result-sheet">
@@ -171,6 +165,7 @@ html_content = f"""
     const AMZ_TAG = "{AMAZON_TAG}";
     const LEXIKON_BASE = "{LEXIKON_BASE}";
     const FEEDBACK_MAIL = "{FEEDBACK_MAIL}";
+    const APP_URL = "{APP_URL_PUBLIC}";
     
     let db = {{}};
     let scanner = null;
@@ -201,23 +196,19 @@ html_content = f"""
         sheet.classList.add('open');
 
         try {{
-            // 1. API Call (OpenBeautyFacts)
+            // 1. API Call
             const res = await fetch(`https://world.openbeautyfacts.org/api/v0/product/${{code}}.json`);
             const data = await res.json();
 
-            // FALL 1: UNBEKANNTES PRODUKT
+            // UNBEKANNT
             if(data.status === 0) {{
                 ui.innerHTML = `
                     <div style="text-align:center; padding: 2rem 0;">
                         <div style="font-size:3rem;">🤷‍♀️</div>
                         <h3>Unbekanntes Produkt</h3>
-                        <p style="color:var(--muted)">Barcode ${{code}} ist noch nicht in der Datenbank.</p>
-                        
-                        <a href="mailto:${{FEEDBACK_MAIL}}?subject=Neues%20Produkt%20${{code}}&body=Hey,%20ich%20habe%20ein%20Produkt%20gescannt,%20das%20fehlt:%0A%0ABarcode:%20${{code}}%0AProduktname:%20..." class="btn btn-affiliate" style="background:var(--primary);">
-                            ➕ Jetzt melden
-                        </a>
-                    </div>
-                `;
+                        <p style="color:var(--muted)">Barcode ${{code}} nicht gefunden.</p>
+                        <a href="mailto:${{FEEDBACK_MAIL}}?subject=Neues%20Produkt%20${{code}}" class="btn btn-affiliate" style="background:var(--primary);">➕ Jetzt melden</a>
+                    </div>`;
                 return;
             }}
 
@@ -231,11 +222,10 @@ html_content = f"""
             let listHtml = '';
             let riskCount = 0;
 
-            // 3. Datenbank Abgleich
+            // 3. Datenbank
             if(ingredients.length > 0) {{
                 ingredients.forEach(tag => {{
                     let inci = (tag.split(':')[1] || tag).toUpperCase().replace(/-/g, ' ');
-                    
                     let info = db[inci];
                     if(!info) info = Object.values(db).find(v => v.n.toUpperCase() === inci);
 
@@ -245,7 +235,6 @@ html_content = f"""
                             style = "inci-danger";
                             riskCount++;
                         }}
-                        
                         let slug = info.n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
                         let link = `${{LEXIKON_BASE}}/${{slug}}.html`;
                         
@@ -266,22 +255,29 @@ html_content = f"""
                 listHtml = '<div style="padding:1rem; text-align:center; opacity:0.5;">Keine INCI-Liste verfügbar.</div>';
             }}
 
-            // 4. AFFILIATE & FEEDBACK
-            let affiliateBtn = "";
+            // 4. SMART ACTIONS (Affiliate + Share)
+            let actionBtns = "";
+            let shareText = `Ich habe ${{(p.product_name||'ein Produkt')}} mit Skin-Check gescannt. Alles safe! ✅`;
+            
             if (riskCount > 0 || hasMicroplastics || hasPalmOil) {{
                 const cleanName = (p.product_name || '').replace(/[^a-zA-Z0-9 ]/g, '');
                 const search = `Naturkosmetik Alternative ${{cleanName}}`;
                 const link = `https://www.amazon.de/s?k=${{encodeURIComponent(search)}}&tag=${{AMZ_TAG}}`;
                 
-                affiliateBtn = `
+                shareText = `😱 Ich habe ${{(p.product_name||'dieses Produkt')}} gescannt und bedenkliche Stoffe gefunden! Check deine Produkte auch:`;
+                
+                actionBtns += `
                 <a href="${{link}}" target="_blank" class="btn btn-affiliate">
                     <span>✨</span> Gesunde Alternative finden ↗
-                </a>
-                `;
+                </a>`;
             }}
+            
+            // Share Link Generieren (WhatsApp / Universal)
+            const shareUrl = `https://wa.me/?text=${{encodeURIComponent(shareText + " " + APP_URL)}}`;
+            actionBtns += `<a href="${{shareUrl}}" target="_blank" class="btn btn-share">📤 Warnung teilen</a>`;
 
-            // FEEDBACK LINK GENERIEREN
-            const feedbackLink = `mailto:${{FEEDBACK_MAIL}}?subject=Fehler%20${{p.product_name}}&body=Barcode:${{code}}%0AFehler:%20...`;
+
+            const feedbackLink = `mailto:${{FEEDBACK_MAIL}}?subject=Fehler%20${{p.product_name}}&body=Barcode:${{code}}`;
 
             // 5. HTML Render
             ui.innerHTML = `
@@ -298,7 +294,7 @@ html_content = f"""
                     ${{riskCount > 0 ? `<span class="badge b-danger">⚠️ ${{riskCount}} Bedenklich</span>` : '<span class="badge b-safe">✨ Keine Risiken</span>'}}
                 </div>
                 
-                ${{affiliateBtn}}
+                ${{actionBtns}}
                 
                 <h3 style="font-size:1rem; opacity:0.7; margin: 20px 0 10px 0;">Analyse</h3>
                 <div style="display:flex; flex-direction:column; gap:5px;">
@@ -326,7 +322,7 @@ print(f"💄 Erstelle {OUTPUT_MANIFEST}...")
 with open(OUTPUT_MANIFEST, "w", encoding="utf-8") as f:
     f.write(manifest_content)
 
-print(f"💄 Erstelle {OUTPUT_HTML} (mit Overlay Fix)...")
+print(f"💄 Erstelle {OUTPUT_HTML} (mit Social Share)...")
 with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
     f.write(html_content)
 
