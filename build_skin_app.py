@@ -11,7 +11,7 @@ LEXIKON_BASE = "lexikon"
 # 💰 DEIN GELD-MACHER TAG
 AMAZON_TAG = "dein-tag-21" 
 
-# 📧 FEEDBACK ZIEL (Hier deine Email oder Google Form Link eintragen)
+# 📧 FEEDBACK ZIEL
 FEEDBACK_MAIL = "feedback@skincheck.app"
 
 # Lila/Blau Verlauf für Kosmetik-Look
@@ -75,6 +75,8 @@ html_content = f"""
         /* Scanner */
         #scanner-wrapper {{ flex: 1; position: relative; background: #000; }}
         #reader {{ width: 100%; height: 100%; object-fit: cover; }}
+        
+        /* FIX: pointer-events: none damit man durchklicken kann */
         .scan-frame {{ 
             width: 70%; aspect-ratio: 1; border: 2px solid rgba(255,255,255,0.2); border-radius: 20px;
             box-shadow: 0 0 0 4000px rgba(0,0,0,0.7); position: relative; pointer-events: none;
@@ -140,7 +142,7 @@ html_content = f"""
 
 <div id="scanner-wrapper">
     <div id="reader"></div>
-    <div style="position:absolute; inset:0; display:flex; justify-content:center; align-items:center;">
+    <div style="position:absolute; inset:0; display:flex; justify-content:center; align-items:center; pointer-events:none;">
         <div class="scan-frame"></div>
     </div>
 </div>
@@ -305,7 +307,7 @@ html_content = f"""
 </html>
 """
 
-print("💄 Erstelle App mit Community-Feedback...")
+print("💄 Erstelle App mit Overlay-Fix...")
 with open(OUTPUT_MANIFEST, "w", encoding="utf-8") as f: f.write(manifest_content)
 with open(OUTPUT_HTML, "w", encoding="utf-8") as f: f.write(html_content)
 print("✅ Skin-Check Ready!")
