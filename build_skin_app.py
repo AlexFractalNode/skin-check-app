@@ -72,14 +72,27 @@ html_content = f"""
         }}
         header h1 {{ margin: 0; font-size: 1.2rem; letter-spacing: 1px; font-weight: 800; }}
 
-        /* Scanner */
-        #scanner-wrapper {{ flex: 1; position: relative; background: #000; }}
-        #reader {{ width: 100%; height: 100%; object-fit: cover; }}
+        /* Scanner Bereich */
+        #scanner-wrapper {{ 
+            flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; 
+        }}
         
-        /* FIX: pointer-events: none damit man durchklicken kann */
+        /* Der eigentliche Kamera-Feed */
+        #reader {{ 
+            width: 100%; height: 100%; object-fit: cover; z-index: 1; 
+        }}
+        
+        /* Das Overlay (Rahmen) - Muss über dem Reader liegen, aber Klicks durchlassen */
+        .scan-overlay {{
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none; /* WICHTIG: Klicks gehen durch! */
+            z-index: 10;
+        }}
+
         .scan-frame {{ 
             width: 70%; aspect-ratio: 1; border: 2px solid rgba(255,255,255,0.2); border-radius: 20px;
-            box-shadow: 0 0 0 4000px rgba(0,0,0,0.7); position: relative; pointer-events: none;
+            box-shadow: 0 0 0 4000px rgba(0,0,0,0.7); position: relative;
         }}
         .scan-frame::after {{
             content: ''; position: absolute; inset: -3px; border: 3px solid var(--accent); border-radius: 20px;
@@ -142,7 +155,8 @@ html_content = f"""
 
 <div id="scanner-wrapper">
     <div id="reader"></div>
-    <div style="position:absolute; inset:0; display:flex; justify-content:center; align-items:center; pointer-events:none;">
+    
+    <div class="scan-overlay">
         <div class="scan-frame"></div>
     </div>
 </div>
@@ -307,7 +321,4 @@ html_content = f"""
 </html>
 """
 
-print("💄 Erstelle App mit Overlay-Fix...")
-with open(OUTPUT_MANIFEST, "w", encoding="utf-8") as f: f.write(manifest_content)
-with open(OUTPUT_HTML, "w", encoding="utf-8") as f: f.write(html_content)
-print("✅ Skin-Check Ready!")
+Wenn du das hochlädst und die App neu lädst (Seite aktualisieren, Cache leeren), solltest du problemlos den "Kamera zulassen"-Button klicken können, da das Overlay jetzt Klicks ignoriert. ✅
